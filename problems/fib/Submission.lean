@@ -3,7 +3,7 @@ import Spec
 namespace Submission
 
 /-
-Trial Run : 67M Instructions
+Direct Nat arithmetic variant; the doubling formulas and recursion are unchanged.
 We store
 
     (F n, F (n - 1))
@@ -50,12 +50,12 @@ def fdPrev : Nat → Nat → Nat × Nat
   | fuel + 1, n + 2 =>
       match fdPrev fuel ((n + 2) / 2) with
       | (a, c) =>
-          let x := a * (a + c + c)
-          let y := a * a + c * c
+          let x := Nat.mul a (Nat.add (Nat.add a c) c)
+          let y := Nat.add (Nat.mul a a) (Nat.mul c c)
           if (n + 2) % 2 = 0 then
             (x, y)
           else
-            (x + y, x)
+            (Nat.add x y, x)
 
 /--
 Subtraction-free form of the even Fibonacci doubling identity:
@@ -124,6 +124,7 @@ theorem fdPrev_spec :
         rw [hpred] at hodd
         have hsub : n + 2 - 1 = n + 1 := by omega
         rw [hsub, heven, hodd]
+        rfl
       · rw [if_neg hpar]
         have hevenIndex : 2 * m = n + 1 := by omega
         have hoddIndex : 2 * m - 1 = n := by omega
