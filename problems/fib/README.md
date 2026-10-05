@@ -26,5 +26,11 @@ pass every performance case.
 
 - **Baseline:** fast doubling, 67,175,513 leaderboard instructions.
 - **Change:** replaced Fibonacci arithmetic using `+` and `*` with direct `Nat.add` and `Nat.mul` calls, reducing kernel wrapper overhead. Formulas and recursion stayed unchanged.
-- **Result:** 57,459,041 instructions — **14.5% fewer**. This is our new baseline; correctness and all six local evaluation cases passed.
+- **Result:** 57,459,041 instructions — **14.5% fewer**. Correctness and all six local evaluation cases passed.
 - **Discarded experiment:** two-square formulas increased playground instructions by 31%, so we reverted them.
+
+### Direct index arithmetic and Boolean tests
+
+- Used direct `Nat.add`, `Nat.div`, and `Nat.mod` for index arithmetic, plus `Nat.beq` and `bif` for zero/parity tests. Formulas and recursion stayed unchanged.
+- Playground run #453: **accepted, 3/3 groups**. At `n = 80,000`, instructions fell from **10,540,466 to approximately 8.34M** — **20.9% fewer**, or **32.0% below the original 12,257,394**.
+- This is the new implementation baseline. The 8.34M figure is rounded and measures one playground case, not the official leaderboard total.
