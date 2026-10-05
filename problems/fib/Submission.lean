@@ -3,7 +3,7 @@ import Spec
 namespace Submission
 
 /-
-Direct Nat arithmetic variant; the doubling formulas and recursion are unchanged.
+Direct Nat arithmetic and Boolean tests; doubling formulas and recursion are unchanged.
 We store
 
     (F n, F (n - 1))
@@ -48,11 +48,11 @@ def fdPrev : Nat → Nat → Nat × Nat
   | _ + 1, 0 => (0, 0)
   | _ + 1, 1 => (1, 0)
   | fuel + 1, n + 2 =>
-      match fdPrev fuel ((n + 2) / 2) with
+      match fdPrev fuel (Nat.div (Nat.add n 2) 2) with
       | (a, c) =>
           let x := Nat.mul a (Nat.add (Nat.add a c) c)
           let y := Nat.add (Nat.mul a a) (Nat.mul c c)
-          if (n + 2) % 2 = 0 then
+          bif Nat.beq (Nat.mod (Nat.add n 2) 2) 0 then
             (x, y)
           else
             (Nat.add x y, x)
@@ -111,13 +111,17 @@ theorem fdPrev_spec :
       have hmpos : 0 < (n + 2) / 2 := by omega
       have hmle : (n + 2) / 2 ≤ fuel := by omega
       have ih := fdPrev_spec fuel ((n + 2) / 2) hmpos hmle
+      change fdPrev fuel (Nat.div (Nat.add n 2) 2) = _ at ih
       rw [fdPrev, ih]
       dsimp only
       set m := (n + 2) / 2 with hm
       have heven := fib_even_prev m hmpos
       have hodd := fib_odd_prev m hmpos
       by_cases hpar : (n + 2) % 2 = 0
-      · rw [if_pos hpar]
+      · have hb : Nat.beq (Nat.mod (Nat.add n 2) 2) 0 = true := by
+          rw [Nat.beq_eq]
+          exact hpar
+        simp only [hb, cond]
         have heq : 2 * m = n + 2 := by omega
         have hpred : 2 * m - 1 = n + 1 := by omega
         rw [heq] at heven
@@ -125,7 +129,11 @@ theorem fdPrev_spec :
         have hsub : n + 2 - 1 = n + 1 := by omega
         rw [hsub, heven, hodd]
         rfl
-      · rw [if_neg hpar]
+      · have hb : Nat.beq (Nat.mod (Nat.add n 2) 2) 0 = false := by
+          apply Bool.eq_false_iff.mpr
+          intro heq
+          exact hpar (Nat.eq_of_beq_eq_true heq)
+        simp only [hb, cond]
         have hevenIndex : 2 * m = n + 1 := by omega
         have hoddIndex : 2 * m - 1 = n := by omega
         rw [hevenIndex] at heven
@@ -142,7 +150,7 @@ Challenge implementation.
 The `n = 0` case is separated because the worker stores F(n-1).
 -/
 def impl (n : Nat) : Nat :=
-  if n = 0 then
+  bif Nat.beq n 0 then
     0
   else
     (fdPrev n n).1
@@ -154,6 +162,10 @@ theorem impl_correct : ∀ n, impl n = Nat.fib n := by
     simp [impl]
   · have hpos : 0 < n := Nat.pos_of_ne_zero hn
     have h := fdPrev_spec n n hpos (Nat.le_refl n)
-    rw [impl, if_neg hn, h]
+    have hb : Nat.beq n 0 = false := by
+      apply Bool.eq_false_iff.mpr
+      intro heq
+      exact hn (Nat.eq_of_beq_eq_true heq)
+    simp only [impl, hb, cond, h]
 
 end Submission
